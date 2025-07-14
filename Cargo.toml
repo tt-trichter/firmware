@@ -1,6 +1,6 @@
 [package]
-edition = "2024"
-name    = "trichter-firmware"
+edition = "2021"
+name    = "trichter"
 description = "Microntroller firmware for trichter"
 repository = "https://github.com/tt-trichter/firmware"
 license = "MIT"

@@ -162,7 +162,7 @@ impl<'a> SessionResultClient<'a> {
             }}\
             ",
             result.rate,
-            result.duration.as_millis(),
+            (result.duration.as_millis() as f32) / 1000.0,
             result.volume,
         );
 

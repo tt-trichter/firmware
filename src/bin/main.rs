@@ -18,7 +18,7 @@ use esp_wifi::{init, EspWifiController};
 use trichter::{
     driver::{
         indicator_lights::IndicatorLights,
-        sensor::{SessionResult, StartupWindow, RESULTS},
+        sensor::{SessionResult, StartupWindow},
     },
     mk_static, ok_or_panic,
     system::System,
@@ -41,7 +41,7 @@ async fn main(spawner: Spawner) {
         peripherals.GPIO46,
         peripherals.GPIO0,
         peripherals.GPIO45,
-        peripherals.GPIO48,
+        peripherals.GPIO9,
     );
 
     let rng = Rng::new(peripherals.RNG);
@@ -52,7 +52,7 @@ async fn main(spawner: Spawner) {
     );
     let timer0 = SystemTimer::new(peripherals.SYSTIMER);
     let mut system = System::builder(timer0.alarm0)
-        .with_sensor(peripherals.GPIO9)
+        .with_sensor(peripherals.GPIO48)
         .with_wifi(wifi_init, peripherals.WIFI, peripherals.BT)
         .build();
 
@@ -65,14 +65,13 @@ async fn main(spawner: Spawner) {
     let mut result_client = ok_or_panic(SessionResultClient::new(stack).await, &mut indicators);
 
     let mut sensor = system.sensor.take().expect("sensor was not initialized");
-    let duration = Duration::from_secs(10);
     loop {
         info!("Waiting for session to start...");
 
         let res = sensor
             .mesaure_session(
                 StartupWindow::default(),
-                Duration::from_millis(100),
+                Duration::from_millis(500),
                 &mut indicators,
             )
             .await;

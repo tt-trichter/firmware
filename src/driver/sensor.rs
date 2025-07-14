@@ -6,6 +6,8 @@ use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
 use embassy_time::{Duration, Instant, Timer};
 use esp_hal::gpio::{Event, Input, InputConfig, InputPin};
 
+use crate::config::sensor::{STARTUP_DURATION_MS, STARTUP_REQUIRED_PULSES};
+
 use super::indicator_lights::IndicatorLights;
 
 pub struct SensorDriver<'d> {
@@ -113,7 +115,7 @@ impl<'d> SensorDriver<'d> {
     pub fn pulses_to_flow(pulses: u32, duration: Duration) -> f32 {
         let window_s = duration.as_micros() as f32 / 1_000_000.0;
         let pulses_per_sec = pulses as f32 / window_s;
-        pulses_per_sec * 60.0 / 6.6
+        pulses_per_sec / 6.6
     }
 }
 
@@ -134,13 +136,11 @@ impl StartupWindow {
 impl Default for StartupWindow {
     fn default() -> Self {
         Self {
-            pulses: 10,
-            length: Duration::from_millis(100),
+            pulses: STARTUP_REQUIRED_PULSES,
+            length: Duration::from_millis(STARTUP_DURATION_MS),
         }
     }
 }
-
-const HISTORY_SIZE: usize = 16;
 
 pub struct SessionResult {
     pub duration: Duration,
@@ -150,7 +150,9 @@ pub struct SessionResult {
 
 impl SessionResult {
     pub fn new(duration: Duration, rate: f32) -> Self {
+        info!("Got {} ms", duration.as_millis());
         let minutes = duration.as_millis() as f32 / 60_000.0;
+        info!("Leads to {} minutes", minutes);
         let volume = rate * minutes;
 
         Self {
@@ -160,5 +162,3 @@ impl SessionResult {
         }
     }
 }
-
-pub static RESULTS: Mutex<CriticalSectionRawMutex, Vec<SessionResult>> = Mutex::new(Vec::new());
